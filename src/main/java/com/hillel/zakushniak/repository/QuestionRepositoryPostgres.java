@@ -1,6 +1,5 @@
 package com.hillel.zakushniak.repository;
 
-import com.hillel.zakushniak.ConnectionSingleton;
 import com.hillel.zakushniak.model.Question;
 import com.hillel.zakushniak.repository.dao.QuestionRepository;
 
@@ -10,14 +9,18 @@ import java.util.List;
 
 public class QuestionRepositoryPostgres implements QuestionRepository {
 
-    private Connection connection;
+    private final Connection connection;
     public static final String save =
             """
                     INSERT INTO public.questions(text, topic_id) 
                     VALUES (?, ?)
                     """;
 
-
+    public static final String get =
+            """
+                   SELECT * FROM public.questions
+                    WHERE id = ?
+                    """;
     public static final String getAll =
             """
                     SELECT * FROM public.questions
@@ -58,8 +61,9 @@ public class QuestionRepositoryPostgres implements QuestionRepository {
     public Question getQuestion(int id) {
 
         try {
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("Select * from questions where id = " + id);
+            var preparedStatement = connection.prepareStatement(get);
+            preparedStatement.setInt(1, id);
+            ResultSet resultSet = preparedStatement.executeQuery();
             resultSet.next();
 
             return Question.builder()
