@@ -1,5 +1,6 @@
 package com.hillel.zakushniak.repository;
 
+import com.hillel.zakushniak.ConnectionSingleton;
 import com.hillel.zakushniak.model.Topic;
 import com.hillel.zakushniak.repository.dao.TopicRepository;
 
@@ -9,18 +10,12 @@ import java.util.List;
 
 public class TopicRepositoryPostgres implements TopicRepository {
 
-    private final Connection connection;
+    private Connection connection;
 
     public static final String save =
             """
                     INSERT INTO public.topics (name)
                     VALUES (?)
-                    """;
-
-    public static final String get =
-            """
-                   SELECT * FROM public.topics
-                    WHERE id = ?
                     """;
 
     public static final String getAll =
@@ -42,10 +37,10 @@ public class TopicRepositoryPostgres implements TopicRepository {
                     WHERE id = ?;
                     """;
 
-
     public TopicRepositoryPostgres(Connection connection) {
         this.connection = connection;
     }
+
 
     @Override
     public boolean saveTopic(Topic topic) {
@@ -64,9 +59,8 @@ public class TopicRepositoryPostgres implements TopicRepository {
     public Topic getTopic(int id) {
 
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement(get);
-            preparedStatement.setInt(1, id);
-            ResultSet resultSet = preparedStatement.executeQuery(get + id);
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("Select * from topics where id = " + id);
             resultSet.next();
 
             return Topic.builder()

@@ -1,5 +1,6 @@
 package com.hillel.zakushniak.repository;
 
+import com.hillel.zakushniak.ConnectionSingleton;
 import com.hillel.zakushniak.model.Question;
 import com.hillel.zakushniak.repository.dao.QuestionRepository;
 
@@ -9,19 +10,13 @@ import java.util.List;
 
 public class QuestionRepositoryPostgres implements QuestionRepository {
 
-
-    private final Connection connection;
+    private Connection connection;
     public static final String save =
             """
-                    INSERT INTO public.questions(name) 
-                    VALUES (?)
+                    INSERT INTO public.questions(text, topic_id) 
+                    VALUES (?, ?)
                     """;
 
-    public static final String get =
-            """
-                    SELECT * FROM public.questions
-                    WHERE id = ?
-                    """;
 
     public static final String getAll =
             """
@@ -40,10 +35,10 @@ public class QuestionRepositoryPostgres implements QuestionRepository {
                     WHERE id = ?;
                     """;
 
-
     public QuestionRepositoryPostgres(Connection connection) {
         this.connection = connection;
     }
+
 
     @Override
     public boolean saveQuestion(Question question) {
@@ -51,6 +46,7 @@ public class QuestionRepositoryPostgres implements QuestionRepository {
             var preparedStatement = connection.prepareStatement(save);
 
             preparedStatement.setString(1, question.getText());
+            preparedStatement.setInt(2, question.getTopic_id());
             return preparedStatement.execute();
 
         } catch (SQLException e) {
@@ -62,9 +58,8 @@ public class QuestionRepositoryPostgres implements QuestionRepository {
     public Question getQuestion(int id) {
 
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement(get);
-            preparedStatement.setInt(1, id);
-            ResultSet resultSet = preparedStatement.executeQuery(get + id);
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("Select * from questions where id = " + id);
             resultSet.next();
 
             return Question.builder()
