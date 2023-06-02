@@ -1,5 +1,6 @@
 package com.hillel.zakushniak.repository;
 
+import com.hillel.zakushniak.ConnectionSingleton;
 import com.hillel.zakushniak.model.Question;
 import com.hillel.zakushniak.repository.dao.QuestionRepository;
 
@@ -61,7 +62,7 @@ public class QuestionRepositoryPostgres implements QuestionRepository {
     public Question getQuestion(int id) {
 
         try {
-            var preparedStatement = connection.prepareStatement(get);
+            var preparedStatement = ConnectionSingleton.getConnection().prepareStatement(get);
             preparedStatement.setInt(1, id);
             ResultSet resultSet = preparedStatement.executeQuery();
             resultSet.next();
@@ -80,7 +81,7 @@ public class QuestionRepositoryPostgres implements QuestionRepository {
     public List<Question> getAllQuestions() {
 
         try {
-            Statement statement = connection.createStatement();
+            Statement statement = ConnectionSingleton.getConnection().createStatement();
             ResultSet resultSet = statement.executeQuery(getAll);
             List<Question> questions = new ArrayList<>();
 
@@ -104,7 +105,7 @@ public class QuestionRepositoryPostgres implements QuestionRepository {
     public int updateQuestion(Question question) {
 
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement(update);
+            PreparedStatement preparedStatement = ConnectionSingleton.getConnection().prepareStatement(update);
             preparedStatement.setInt(1, question.getId());
             preparedStatement.setString(2, question.getText());
 
@@ -119,7 +120,7 @@ public class QuestionRepositoryPostgres implements QuestionRepository {
     public boolean removeQuestion(int id) {
 
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement(remove);
+            PreparedStatement preparedStatement = ConnectionSingleton.getConnection().prepareStatement(remove);
 
             preparedStatement.setInt(1, id);
             return preparedStatement.execute();
