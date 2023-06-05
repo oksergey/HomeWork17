@@ -15,7 +15,8 @@ public class TopicRepositoryPostgres implements TopicRepository {
     public static final String save =
             """
                     INSERT INTO public.topics (name)
-                    VALUES (?)
+                    SELECT ?
+                    WHERE NOT EXISTS (SELECT 1 FROM public.topics WHERE name = ?) 
                     """;
 
     public static final String get =
@@ -53,6 +54,7 @@ public class TopicRepositoryPostgres implements TopicRepository {
             var preparedStatement = ConnectionSingleton.getConnection().prepareStatement(save);
 
             preparedStatement.setString(1, topic.getName());
+            preparedStatement.setString(2, topic.getName());
             return preparedStatement.execute();
 
         } catch (SQLException e) {
