@@ -12,37 +12,6 @@ public class TopicRepositoryPostgres implements TopicRepository {
 
     private final Connection connection;
 
-    public static final String save =
-            """
-                    INSERT INTO public.topics (name)
-                    SELECT ?
-                    WHERE NOT EXISTS (SELECT 1 FROM public.topics WHERE name = ?) 
-                    """;
-
-    public static final String get =
-            """
-                   SELECT * FROM public.topics
-                    WHERE id = ?
-                    """;
-    public static final String getAll =
-            """
-                    SELECT * FROM public.topics
-                    """;
-
-
-    public static final String remove =
-            """
-                    DELETE FROM public.topics
-                    WHERE id = ?
-                    """;
-
-    public static final String update =
-            """
-                    UPDATE public.topics
-                    SET name = ?,
-                    WHERE id = ?;
-                    """;
-
     public TopicRepositoryPostgres(Connection connection) {
         this.connection = connection;
     }
@@ -50,6 +19,13 @@ public class TopicRepositoryPostgres implements TopicRepository {
 
     @Override
     public boolean saveTopic(Topic topic) {
+        String save =
+                """
+                        INSERT INTO public.topics (name)
+                        SELECT ?
+                        WHERE NOT EXISTS (SELECT 1 FROM public.topics WHERE name = ?) 
+                        """;
+
         try {
             var preparedStatement = ConnectionSingleton.getConnection().prepareStatement(save);
 
@@ -64,7 +40,11 @@ public class TopicRepositoryPostgres implements TopicRepository {
 
     @Override
     public Topic getTopic(int id) {
-
+        String get =
+                """
+                        SELECT * FROM public.topics
+                         WHERE id = ?
+                         """;
         try {
             var preparedStatement = ConnectionSingleton.getConnection().prepareStatement(get);
             preparedStatement.setInt(1, id);
@@ -83,9 +63,13 @@ public class TopicRepositoryPostgres implements TopicRepository {
 
     @Override
     public List<Topic> getAllTopics() {
+        String getAll =
+                """
+                        SELECT * FROM public.topics
+                        """;
         try {
             var preparedStatement = ConnectionSingleton.getConnection().prepareStatement(getAll);
-                        ResultSet resultSet = preparedStatement.executeQuery();
+            ResultSet resultSet = preparedStatement.executeQuery();
             List<Topic> topics = new ArrayList<>();
 
             while (resultSet.next()) {
@@ -105,6 +89,12 @@ public class TopicRepositoryPostgres implements TopicRepository {
 
     @Override
     public int updateTopic(Topic topic) {
+        String update =
+                """
+                        UPDATE public.topics
+                        SET name = ?,
+                        WHERE id = ?;
+                        """;
 
         try {
             PreparedStatement preparedStatement = ConnectionSingleton.getConnection().prepareStatement(update);
@@ -120,7 +110,11 @@ public class TopicRepositoryPostgres implements TopicRepository {
 
     @Override
     public boolean removeTopic(int id) {
-
+        String remove =
+                """
+                        DELETE FROM public.topics
+                        WHERE id = ?
+                        """;
         try {
             PreparedStatement preparedStatement = ConnectionSingleton.getConnection().prepareStatement(remove);
 

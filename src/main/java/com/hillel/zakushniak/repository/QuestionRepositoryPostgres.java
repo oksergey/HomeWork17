@@ -23,7 +23,7 @@ public class QuestionRepositoryPostgres implements QuestionRepository {
                         VALUES (?, ?)
                         """;
         try {
-            var preparedStatement = connection.prepareStatement(save, Statement.RETURN_GENERATED_KEYS);
+            var preparedStatement = ConnectionSingleton.getConnection().prepareStatement(save, Statement.RETURN_GENERATED_KEYS);
             preparedStatement.setString(1, question.getText());
             preparedStatement.setInt(2, question.getTopic_id());
             preparedStatement.execute();
@@ -35,7 +35,6 @@ public class QuestionRepositoryPostgres implements QuestionRepository {
                 question.setId(generatedId);
                 return question;
             }
-
             return null;
 
         } catch (SQLException throwables) {
@@ -106,7 +105,6 @@ public class QuestionRepositoryPostgres implements QuestionRepository {
                 """
                         SELECT * FROM public.questions
                         """;
-
 
         try {
             var preparedStatement = ConnectionSingleton.getConnection().prepareStatement(getAll);
