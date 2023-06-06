@@ -1,5 +1,6 @@
 package com.hillel.zakushniak.repository;
 
+import com.hillel.zakushniak.ConnectionSingleton;
 import com.hillel.zakushniak.model.Topic;
 import com.hillel.zakushniak.repository.dao.TopicRepository;
 
@@ -11,48 +12,25 @@ public class TopicRepositoryPostgres implements TopicRepository {
 
     private final Connection connection;
 
-    public static final String save =
-            """
-                    INSERT INTO public.topics (name)
-                    VALUES (?)
-                    """;
-
-    public static final String get =
-            """
-                   SELECT * FROM public.topics
-                    WHERE id = ?
-                    """;
-
-    public static final String getAll =
-            """
-                    SELECT * FROM public.topics
-                    """;
-
-
-    public static final String remove =
-            """
-                    DELETE FROM public.topics
-                    WHERE id = ?
-                    """;
-
-    public static final String update =
-            """
-                    UPDATE public.topics
-                    SET name = ?,
-                    WHERE id = ?;
-                    """;
-
-
     public TopicRepositoryPostgres(Connection connection) {
         this.connection = connection;
     }
 
+
     @Override
     public boolean saveTopic(Topic topic) {
+        String save =
+                """
+                        INSERT INTO public.topics (name)
+                        SELECT ?
+                        WHERE NOT EXISTS (SELECT 1 FROM public.topics WHERE name = ?) 
+                        """;
+
         try {
-            var preparedStatement = connection.prepareStatement(save);
+            var preparedStatement = ConnectionSingleton.getConnection().prepareStatement(save);
 
             preparedStatement.setString(1, topic.getName());
+            preparedStatement.setString(2, topic.getName());
             return preparedStatement.execute();
 
         } catch (SQLException e) {
@@ -62,11 +40,15 @@ public class TopicRepositoryPostgres implements TopicRepository {
 
     @Override
     public Topic getTopic(int id) {
-
+        String get =
+                """
+                        SELECT * FROM public.topics
+                         WHERE id = ?
+                         """;
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement(get);
+            var preparedStatement = ConnectionSingleton.getConnection().prepareStatement(get);
             preparedStatement.setInt(1, id);
-            ResultSet resultSet = preparedStatement.executeQuery(get + id);
+            ResultSet resultSet = preparedStatement.executeQuery();
             resultSet.next();
 
             return Topic.builder()
@@ -81,9 +63,13 @@ public class TopicRepositoryPostgres implements TopicRepository {
 
     @Override
     public List<Topic> getAllTopics() {
+        String getAll =
+                """
+                        SELECT * FROM public.topics
+                        """;
         try {
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(getAll);
+            var preparedStatement = ConnectionSingleton.getConnection().prepareStatement(getAll);
+            ResultSet resultSet = preparedStatement.executeQuery();
             List<Topic> topics = new ArrayList<>();
 
             while (resultSet.next()) {
@@ -103,9 +89,15 @@ public class TopicRepositoryPostgres implements TopicRepository {
 
     @Override
     public int updateTopic(Topic topic) {
+        String update =
+                """
+                        UPDATE public.topics
+                        SET name = ?,
+                        WHERE id = ?;
+                        """;
 
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement(update);
+            PreparedStatement preparedStatement = ConnectionSingleton.getConnection().prepareStatement(update);
             preparedStatement.setInt(1, topic.getId());
             preparedStatement.setString(2, topic.getName());
 
@@ -118,9 +110,13 @@ public class TopicRepositoryPostgres implements TopicRepository {
 
     @Override
     public boolean removeTopic(int id) {
-
+        String remove =
+                """
+                        DELETE FROM public.topics
+                        WHERE id = ?
+                        """;
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement(remove);
+            PreparedStatement preparedStatement = ConnectionSingleton.getConnection().prepareStatement(remove);
 
             preparedStatement.setInt(1, id);
             return preparedStatement.execute();

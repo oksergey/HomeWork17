@@ -1,5 +1,7 @@
 package com.hillel.zakushniak.repository.dao;
 
+import com.hillel.zakushniak.model.Topic;
+
 import java.util.List;
 
 public interface TopicRepository {

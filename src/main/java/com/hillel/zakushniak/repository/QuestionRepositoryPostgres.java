@@ -1,5 +1,7 @@
 package com.hillel.zakushniak.repository;
 
+import com.hillel.zakushniak.ConnectionSingleton;
+import com.hillel.zakushniak.exception.DaoException;
 import com.hillel.zakushniak.model.Question;
 import com.hillel.zakushniak.repository.dao.QuestionRepository;
 
@@ -8,63 +10,51 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class QuestionRepositoryPostgres implements QuestionRepository {
-
-
     private final Connection connection;
-    public static final String save =
-            """
-                    INSERT INTO public.questions(name) 
-                    VALUES (?)
-                    """;
-
-    public static final String get =
-            """
-                    SELECT * FROM public.questions
-                    WHERE id = ?
-                    """;
-
-    public static final String getAll =
-            """
-                    SELECT * FROM public.questions
-                    """;
-    public static final String remove =
-            """
-                    DELETE FROM public.questions
-                    WHERE id = ?
-                    """;
-
-    public static final String update =
-            """
-                    UPDATE public.questions
-                    SET name = ?,
-                    WHERE id = ?;
-                    """;
-
-
     public QuestionRepositoryPostgres(Connection connection) {
         this.connection = connection;
     }
 
     @Override
-    public boolean saveQuestion(Question question) {
+    public Question saveQuestion(Question question) {
+        String save =
+                """
+                        INSERT INTO public.questions(text, topic_id) 
+                        VALUES (?, ?)
+                        """;
         try {
-            var preparedStatement = connection.prepareStatement(save);
-
+            var preparedStatement = ConnectionSingleton.getConnection().prepareStatement(save, Statement.RETURN_GENERATED_KEYS);
             preparedStatement.setString(1, question.getText());
-            return preparedStatement.execute();
+            preparedStatement.setInt(2, question.getTopic_id());
+            preparedStatement.execute();
 
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+            ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
+
+            if (generatedKeys.next()) {
+                int generatedId = generatedKeys.getInt("id");
+                question.setId(generatedId);
+                return question;
+            }
+            return null;
+
+        } catch (SQLException throwables) {
+            throw new DaoException(throwables);
         }
     }
 
     @Override
     public Question getQuestion(int id) {
+        String get =
+                """
+                        SELECT * FROM public.questions
+                         WHERE id = ?
+                         """;
 
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement(get);
+            var preparedStatement = ConnectionSingleton.getConnection().prepareStatement(get);
+//            var preparedStatement = connection.prepareStatement(get);
             preparedStatement.setInt(1, id);
-            ResultSet resultSet = preparedStatement.executeQuery(get + id);
+            ResultSet resultSet = preparedStatement.executeQuery();
             resultSet.next();
 
             return Question.builder()
@@ -72,23 +62,59 @@ public class QuestionRepositoryPostgres implements QuestionRepository {
                     .text(resultSet.getString("text"))
                     .build();
 
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        } catch (SQLException throwables) {
+            throw new DaoException(throwables);
         }
+    }
+
+    public List<Question> questionsByTopic(String topicName) {
+        String getByTopic =
+                """
+                        SELECT questions.id, questions.text, topics.name
+                        FROM topics
+                        JOIN questions
+                        ON topics.id = questions.topic_id WHERE name = ?;
+                        """;
+
+        try {
+            var preparedStatement = ConnectionSingleton.getConnection().prepareStatement(getByTopic);
+            preparedStatement.setString(1, topicName);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            List<Question> questionsByTopic = new ArrayList<>();
+
+            while (resultSet.next()) {
+                Question build = Question.builder()
+                        .id(resultSet.getInt(1))
+                        .text(resultSet.getString(2))
+//                        .topics.name(resultSet.getString(2))
+                        .build();
+
+                questionsByTopic.add(build);
+            }
+            return questionsByTopic;
+
+        } catch (SQLException throwables) {
+            throw new DaoException(throwables);
+        }
+
     }
 
     @Override
     public List<Question> getAllQuestions() {
+        String getAll =
+                """
+                        SELECT * FROM public.questions
+                        """;
 
         try {
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(getAll);
+            var preparedStatement = ConnectionSingleton.getConnection().prepareStatement(getAll);
+            ResultSet resultSet = preparedStatement.executeQuery();
             List<Question> questions = new ArrayList<>();
 
             while (resultSet.next()) {
                 Question build = Question.builder()
-                        .text(resultSet.getString(2))
                         .id(resultSet.getInt(1))
+                        .text(resultSet.getString(2))
                         .topic_id(resultSet.getInt(3))
                         .build();
 
@@ -96,37 +122,79 @@ public class QuestionRepositoryPostgres implements QuestionRepository {
             }
             return questions;
 
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        } catch (SQLException throwables) {
+            throw new DaoException(throwables);
+        }
+    }
+
+
+    public List<Question> getAllRandomOrder() {
+        String getAllRandomOrder =
+                """
+                        SELECT *
+                        FROM questions
+                        ORDER BY RANDOM();
+                        """;
+
+        try {
+            var preparedStatement = ConnectionSingleton.getConnection().prepareStatement(getAllRandomOrder);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            List<Question> questions = new ArrayList<>();
+
+            while (resultSet.next()) {
+                Question build = Question.builder()
+                        .id(resultSet.getInt(1))
+                        .text(resultSet.getString(2))
+                        .build();
+
+                questions.add(build);
+            }
+            return questions;
+
+        } catch (SQLException throwables) {
+            throw new DaoException(throwables);
         }
     }
 
     @Override
     public int updateQuestion(Question question) {
+        String update =
+                """
+                        UPDATE public.questions
+                        SET name = ?,
+                        WHERE id = ?;
+                        """;
 
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement(update);
+            PreparedStatement preparedStatement = ConnectionSingleton.getConnection().prepareStatement(update);
             preparedStatement.setInt(1, question.getId());
             preparedStatement.setString(2, question.getText());
 
             return preparedStatement.executeUpdate();
 
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        } catch (SQLException throwables) {
+            throw new DaoException(throwables);
         }
     }
 
     @Override
     public boolean removeQuestion(int id) {
+        String remove =
+                """
+                        DELETE FROM public.questions
+                        WHERE id = ?
+                        """;
 
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement(remove);
+            PreparedStatement preparedStatement = ConnectionSingleton.getConnection().prepareStatement(remove);
 
             preparedStatement.setInt(1, id);
             return preparedStatement.execute();
 
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        } catch (SQLException throwables) {
+            throw new DaoException(throwables);
         }
     }
+
+
 }
