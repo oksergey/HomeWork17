@@ -14,6 +14,11 @@ public class Topic {
     private int id;
     private String name;
 
-
-
+    @Override
+    public String toString() {
+        return "\n"+"Topic{" +
+               "id=" + id +
+               ", name='" + name + '\'' +
+               '}' ;
+    }
 }

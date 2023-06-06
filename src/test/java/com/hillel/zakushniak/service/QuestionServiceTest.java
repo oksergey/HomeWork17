@@ -14,7 +14,7 @@ class QuestionServiceTest {
         QuestionService questionService = new QuestionService(questionRepositoryMock);
 
         Question expected = Question.builder()
-                .text("Question1").topic_id(1).build();
+                .text("Question1").topicId(1).build();
 
         Assertions.assertEquals(expected, questionService.saveQuestion("Question1", 1));
     }
@@ -43,7 +43,7 @@ class QuestionServiceTest {
     void getRandomTest() {
         QuestionService questionService = new QuestionService(questionRepositoryMock);
 
-        Question expected = Question.builder().id(1).text("QuestionText").topic_id(1).build();
+        Question expected = Question.builder().id(1).text("QuestionText").topicId(1).build();
         questionRepositoryMock.questions.add(expected);
 
         Assertions.assertEquals(expected, questionService.getRandomByTopic("QuestionText"));
@@ -53,7 +53,7 @@ class QuestionServiceTest {
     public void getRandomByTopicTest() {
         QuestionService questionService = new QuestionService(questionRepositoryMock);
 
-        Question expected = Question.builder().id(1).text("QuestionText").topic_id(1).build();
+        Question expected = Question.builder().id(1).text("QuestionText").topicId(1).build();
         questionRepositoryMock.questions.add(expected);
 
         Assertions.assertEquals(expected, questionService.getRandomByTopic("QuestionText"));

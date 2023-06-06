@@ -1,6 +1,7 @@
 package com.hillel.zakushniak.repository;
 
 import com.hillel.zakushniak.ConnectionSingleton;
+import com.hillel.zakushniak.exception.DaoException;
 import com.hillel.zakushniak.model.Topic;
 import com.hillel.zakushniak.repository.dao.TopicRepository;
 
@@ -33,8 +34,8 @@ public class TopicRepositoryPostgres implements TopicRepository {
             preparedStatement.setString(2, topic.getName());
             return preparedStatement.execute();
 
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        } catch (SQLException throwables) {
+            throw new DaoException(throwables);
         }
     }
 
@@ -56,8 +57,8 @@ public class TopicRepositoryPostgres implements TopicRepository {
                     .name(resultSet.getString("name"))
                     .build();
 
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        } catch (SQLException throwables) {
+            throw new DaoException(throwables);
         }
     }
 
@@ -82,8 +83,8 @@ public class TopicRepositoryPostgres implements TopicRepository {
             }
             return topics;
 
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        } catch (SQLException throwables) {
+            throw new DaoException(throwables);
         }
     }
 
@@ -103,8 +104,8 @@ public class TopicRepositoryPostgres implements TopicRepository {
 
             return preparedStatement.executeUpdate();
 
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        } catch (SQLException throwables) {
+            throw new DaoException(throwables);
         }
     }
 
@@ -121,8 +122,8 @@ public class TopicRepositoryPostgres implements TopicRepository {
             preparedStatement.setInt(1, id);
             return preparedStatement.execute();
 
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        } catch (SQLException throwables) {
+            throw new DaoException(throwables);
         }
     }
 }

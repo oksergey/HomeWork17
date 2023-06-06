@@ -49,7 +49,7 @@ public class QuestionRepositoryMock implements QuestionRepository {
     @Override
     public List<Question> questionsByTopic(String name) {
 
-        return List.of(Question.builder().id(1).text("QuestionText").topic_id(1).build());
+        return List.of(Question.builder().id(1).text("QuestionText").topicId(1).build());
     }
 
     @Override

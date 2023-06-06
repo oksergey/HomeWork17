@@ -25,7 +25,7 @@ public class QuestionRepositoryPostgres implements QuestionRepository {
         try {
             var preparedStatement = ConnectionSingleton.getConnection().prepareStatement(save, Statement.RETURN_GENERATED_KEYS);
             preparedStatement.setString(1, question.getText());
-            preparedStatement.setInt(2, question.getTopic_id());
+            preparedStatement.setInt(2, question.getTopicId());
             preparedStatement.execute();
 
             ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
@@ -52,7 +52,7 @@ public class QuestionRepositoryPostgres implements QuestionRepository {
 
         try {
             var preparedStatement = ConnectionSingleton.getConnection().prepareStatement(get);
-//            var preparedStatement = connection.prepareStatement(get);
+
             preparedStatement.setInt(1, id);
             ResultSet resultSet = preparedStatement.executeQuery();
             resultSet.next();
@@ -70,7 +70,7 @@ public class QuestionRepositoryPostgres implements QuestionRepository {
     public List<Question> questionsByTopic(String topicName) {
         String getByTopic =
                 """
-                        SELECT questions.id, questions.text, topics.name
+                        SELECT questions.id, questions.text, questions.topic_id, topics.name
                         FROM topics
                         JOIN questions
                         ON topics.id = questions.topic_id WHERE name = ?;
@@ -86,7 +86,7 @@ public class QuestionRepositoryPostgres implements QuestionRepository {
                 Question build = Question.builder()
                         .id(resultSet.getInt(1))
                         .text(resultSet.getString(2))
-//                        .topics.name(resultSet.getString(2))
+                        .topicId(resultSet.getInt(3))
                         .build();
 
                 questionsByTopic.add(build);
@@ -115,7 +115,7 @@ public class QuestionRepositoryPostgres implements QuestionRepository {
                 Question build = Question.builder()
                         .id(resultSet.getInt(1))
                         .text(resultSet.getString(2))
-                        .topic_id(resultSet.getInt(3))
+                        .topicId(resultSet.getInt(3))
                         .build();
 
                 questions.add(build);

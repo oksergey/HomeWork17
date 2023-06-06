@@ -23,7 +23,7 @@ public class QuestionService {
 
     public Question saveQuestion(String text, int topic_id) {
         Question question = Question.builder()
-                .text(text).topic_id(topic_id).build();
+                .text(text).topicId(topic_id).build();
 
         return questionRepository.saveQuestion(question);
     }

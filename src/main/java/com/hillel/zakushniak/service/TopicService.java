@@ -2,7 +2,6 @@ package com.hillel.zakushniak.service;
 
 import com.hillel.zakushniak.model.Topic;
 import com.hillel.zakushniak.repository.dao.TopicRepository;
-
 import java.util.List;
 
 public class TopicService {
