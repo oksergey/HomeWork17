@@ -5,7 +5,7 @@ import com.hillel.zakushniak.model.Topic;
 import java.util.List;
 
 public interface TopicRepository {
-    boolean saveTopic(Topic topic);
+    Topic saveTopic(Topic topic);
 
     Topic getTopic(int id);
 

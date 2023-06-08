@@ -11,7 +11,7 @@ public class TopicRepositoryMock implements TopicRepository {
     public List<Topic> topics = new ArrayList<>();
 
     @Override
-    public boolean saveTopic(Topic topic) {
+    public Topic saveTopic(Topic topic) {
         return false;
     }
 
