@@ -2,6 +2,8 @@ package com.hillel.zakushniak.repository;
 
 import com.hillel.zakushniak.ConnectionSingleton;
 import com.hillel.zakushniak.exception.DaoException;
+import com.hillel.zakushniak.exception.IdNotFoundException;
+import com.hillel.zakushniak.exception.TopicNotFoundException;
 import com.hillel.zakushniak.model.Question;
 import com.hillel.zakushniak.repository.dao.QuestionRepository;
 
@@ -11,6 +13,7 @@ import java.util.List;
 
 public class QuestionRepositoryPostgres implements QuestionRepository {
     private final Connection connection;
+
     public QuestionRepositoryPostgres(Connection connection) {
         this.connection = connection;
     }
@@ -37,8 +40,8 @@ public class QuestionRepositoryPostgres implements QuestionRepository {
             }
             return null;
 
-        } catch (SQLException throwables) {
-            throw new DaoException(throwables);
+        } catch (SQLException e) {
+            throw new TopicNotFoundException("There are no topics with entered Id, your Question not added!", e);
         }
     }
 
@@ -62,8 +65,8 @@ public class QuestionRepositoryPostgres implements QuestionRepository {
                     .text(resultSet.getString("text"))
                     .build();
 
-        } catch (SQLException throwables) {
-            throw new DaoException(throwables);
+        } catch (SQLException e) {
+            throw new IdNotFoundException("Question Id not found", e);
         }
     }
 
@@ -96,7 +99,6 @@ public class QuestionRepositoryPostgres implements QuestionRepository {
         } catch (SQLException throwables) {
             throw new DaoException(throwables);
         }
-
     }
 
     @Override
@@ -126,7 +128,6 @@ public class QuestionRepositoryPostgres implements QuestionRepository {
             throw new DaoException(throwables);
         }
     }
-
 
     public List<Question> getAllRandomOrder() {
         String getAllRandomOrder =
@@ -178,7 +179,7 @@ public class QuestionRepositoryPostgres implements QuestionRepository {
     }
 
     @Override
-    public boolean removeQuestion(int id) {
+    public boolean removeQuestion(int id) throws IdNotFoundException {
         String remove =
                 """
                         DELETE FROM public.questions
@@ -192,9 +193,7 @@ public class QuestionRepositoryPostgres implements QuestionRepository {
             return preparedStatement.execute();
 
         } catch (SQLException throwables) {
-            throw new DaoException(throwables);
+            throw new IdNotFoundException("id not found!");
         }
     }
-
-
 }

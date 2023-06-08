@@ -12,7 +12,7 @@ public class TopicService {
         this.topicRepository = topicRepository;
     }
 
-    public boolean saveTopic(String name) {
+    public Topic saveTopic(String name) {
         Topic topic = Topic.builder().name(name).build();
 
         return topicRepository.saveTopic(topic);
@@ -24,7 +24,4 @@ public class TopicService {
     public List<Topic> getAllTopics() {
         return topicRepository.getAllTopics();
     }
-
-
-
 }
