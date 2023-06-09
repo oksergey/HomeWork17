@@ -12,14 +12,12 @@ import java.util.List;
 public class TopicRepositoryPostgres implements TopicRepository {
 
     private final Connection connection;
-
     public TopicRepositoryPostgres(Connection connection) {
         this.connection = connection;
     }
 
-
     @Override
-    public boolean saveTopic(Topic topic) {
+    public Topic saveTopic(Topic topic) {
         String save =
                 """
                         INSERT INTO public.topics (name)
@@ -28,14 +26,23 @@ public class TopicRepositoryPostgres implements TopicRepository {
                         """;
 
         try {
-            var preparedStatement = ConnectionSingleton.getConnection().prepareStatement(save);
+            var preparedStatement = ConnectionSingleton.getConnection().prepareStatement(save, Statement.RETURN_GENERATED_KEYS);
 
             preparedStatement.setString(1, topic.getName());
             preparedStatement.setString(2, topic.getName());
-            return preparedStatement.execute();
+            preparedStatement.execute();
 
-        } catch (SQLException throwables) {
-            throw new DaoException(throwables);
+            ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
+
+            if (generatedKeys.next()) {
+                int generatedId = generatedKeys.getInt("id");
+                topic.setId(generatedId);
+                return topic;
+            }
+            return null;
+
+        } catch (SQLException e) {
+            throw new DaoException(e);
         }
     }
 
